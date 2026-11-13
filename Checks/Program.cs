@@ -17,4 +17,9 @@ Check(PanelData.EnabledPages(new[]{"One", "", "Three", " "}).SequenceEqual(new[]
 Check(PanelData.EnabledPages(new[]{"", " ", "", ""}).Length==0);
 Check(PanelData.EnabledPages(new[]{"One", "Two", "Three", "Four"}).Length==4);
 Check(PanelData.Parse(data.Serialize()).Get(1,42)==new Slot("EM",298));
+Check(PanelData.FadeAlpha(0x80402010, 100) == 0x80402010);
+Check(PanelData.FadeAlpha(0x80402010, 0) == 0x00402010);
+Check(PanelData.FadeAlpha(0x80402010, 50) == 0x40402010);
+Check(PanelData.FadeAlpha(0x80402010, -10) == 0x00402010);
+Check(PanelData.FadeAlpha(0x80402010, 200) == 0x80402010);
 Console.WriteLine($"Passed {n} data and clipboard checks.");

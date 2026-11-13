@@ -43,6 +43,30 @@ AGPL-3.0-or-later. Uses the public Umbra widget/provider interfaces; design info
 
 The grid now uses Umbra's original `_popup_button_grid.xml` resource. The right-click context menu and searchable icon picker are adapted from official Umbra source (AGPL-3.0-or-later), replacing the generic ImGui editor. Source attribution: Una-XIV/Umbra commit 4f7abbd045e7769ec01ef6456dba0d72dee3c2da; the adaptations live under ExpandedPanels/NativeUi. The context menu renderer runs independently of toolbar popups; the picker uses Umbra's WindowManager and original shortcut-picker resource.
 
-Menu Options groups category names, dimensions, scale, spacing and empty-slot visibility. Blank/whitespace category names hide that page without removing its contents. Hidden active pages fall back to the first named page. If all are blank, a message prompts you to name one. Existing widget data is retained, including spacing previously set to 4; use spacing 8 to match the official default.
+Menu Options groups category names, dimensions, scale, spacing and empty-slot visibility. Blank/whitespace category names hide that page without removing its contents. Hidden active pages fall back to the first named page. If all are blank, the current page remains visible as a grid without a category row (0.1.2 onward). Existing widget data is retained, including spacing previously set to 4; use spacing 8 to match the official default.
 
 Test in game: compare styling with the official panel; right-click and verify the themed menu and searchable icon picker; assign, copy/paste and clear slots; hide the active category, hide all categories, restore names and verify saved contents. Check scaling and reload persistence. Automatic closing after use is intentionally absent because these panels remain expanded.
+
+## 0.1.2 Grid-only mode and opacity
+
+Clear all four category names in Menu Options to remove the category bar and its occupied space completely. The current page stays visible; assignments on other pages remain saved and can be accessed by naming those categories again.
+
+**Grid and backing opacity (%)** controls slot backgrounds/borders and the auxiliary-bar backing, including its border and shadow. It does not dim icons, counts or labels; unavailable actions still use their normal dimming. Zero removes the backing while leaving slots clickable. When several expanded panels share one auxiliary bar, the lowest configured opacity controls their shared backing. Use separate auxiliary bars for independent backing opacity.
+
+In-game checks: clear all names and confirm the same grid remains without title space; restore names and verify pages/assignments. Test opacity at 100/50/0 with filled and empty slots, hover, item counts and unavailable actions. Test two panels sharing a bar, move/remove/disable a panel, and reload Umbra to verify backing restoration and persistence.
+
+## 0.1.3 Commandless emotes
+
+Emotes without a chat command now use AgentEmote.ExecuteEmote with the exact stored ID, subject to the game's CanUseEmote check and player/loading checks. Normal chat-command emotes retain the official Umbra behavior. Sleep (88) and the commandless Dote-labelled entry (147) are available in the picker. Missing artwork uses a Sit icon as a display fallback only; ID 147 is not remapped. Existing assigned slots use this automatically.
+
+In-game validation required: compare both entries to the modified native hotbar actions; verify invocation, Sleep's icon, the fallback icon, normal emotes and emote chat output. If the native CanUseEmote check rejects a modified entry, the panel leaves it disabled; this build does not patch game data or force unlocks. Compilation and data checks do not validate native execution.
+
+## 0.1.4 Correct native Sit entry
+
+Native Sit is emote 96: the data row has no name, icon or text command, and uses sitting mode 2. It is now explicitly listed as **Sit (native)** with a Sit icon. Sleep remains 88. Emote 147 is a commandless Dote variant, so it is not remapped to Sit and its fallback artwork is now Dote.
+
+Replace the old Dote slot using the picker, or copy `SC:EM/96` and paste into the slot. Existing slots are never silently remapped. Verify 96 performs the desired sitting animation in-game; native execution still honors CanUseEmote.
+
+## 0.1.5 Sleep appearance
+
+Emote 88 now displays as **Sleep (Native)** and uses the same Sit icon as native Sit 96, in both the picker and assigned slots. Its emote ID and native execution remain unchanged. Existing Sleep slots update automatically.

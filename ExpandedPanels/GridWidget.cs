@@ -20,12 +20,30 @@ public abstract class GridWidget(WidgetInfo info, string? guid, Dictionary<strin
     private string? error;
     private long nextRefresh;
     private bool lastVertical;
+    private Node? previousBar;
     private readonly List<(Node Button, Node Icon, Node Count, Node SubIcon, int Index)> slots = new();
     public int Page => GetConfigValue<int>("Page");
     private Providers Providers => Framework.Service<Providers>();
     protected override void Initialize() => dirty = true;
-    protected override void OnConfigurationChanged() => dirty = true;
-    protected override void OnDisposed() => Framework.Service<SlotEditor>().CloseFor(this);
+    protected override void OnConfigurationChanged()
+    {
+        dirty = true;
+        if (!IsEnabled) SetBarOpacity(previousBar, this);
+    }
+    protected override void OnDisposed()
+    {
+        Framework.Service<SlotEditor>().CloseFor(this);
+        SetBarOpacity(previousBar, this);
+    }
+
+    private static void SetBarOpacity(Node? bar, GridWidget? excluded = null)
+    {
+        var background = bar?.QuerySelector(".bg");
+        if (background == null) return;
+        var panels = bar!.QuerySelectorAll(".widget-instance").Select(n => n.GetAttachment<ToolbarWidget>("Widget"))
+            .OfType<GridWidget>().Where(w => w != excluded && !w.IsDisposed && w.IsEnabled).ToArray();
+        background.Style.Opacity = panels.Length == 0 ? null : panels.Min(w => w.GetConfigValue<int>("BackgroundOpacity")) / 100f;
+    }
     public override string GetInstanceName() => GetConfigValue<string>("Title");
     public Slot? GetSlot(int page, int index) => data.Get(page, index);
 
@@ -57,6 +75,17 @@ public abstract class GridWidget(WidgetInfo info, string? guid, Dictionary<strin
         var enabledPages = PanelData.EnabledPages(Enumerable.Range(0,4).Select(p => GetConfigValue<string>($"Page{p}")));
         if (enabledPages.Length > 0 && !enabledPages.Contains(Page)) SetConfigValue("Page", enabledPages[0]);
         if (dirty) { Rebuild(); dirty = false; }
+        var bar = GetBarNode;
+        if (previousBar != bar) { SetBarOpacity(previousBar, this); previousBar = bar; }
+        SetBarOpacity(bar);
+        foreach (var cell in slots)
+        {
+            bool hidden = data.Get(Page, cell.Index) == null && !GetConfigValue<bool>("Empty");
+            bool hover = cell.Button.TagsList.Contains("hover");
+            int opacity = hidden ? 0 : GetConfigValue<int>("BackgroundOpacity");
+            cell.Button.Style.BackgroundColor = new Color(PanelData.FadeAlpha(new Color(hover ? "Input.BackgroundHover" : "Input.Background").ToUInt(), opacity));
+            cell.Button.Style.StrokeColor = new Color(PanelData.FadeAlpha(new Color(hover ? "Input.BorderHover" : "Input.Border").ToUInt(), opacity));
+        }
         if (Environment.TickCount64 < nextRefresh) return;
         nextRefresh = Environment.TickCount64 + 250;
         foreach (var cell in slots)
@@ -96,11 +125,9 @@ public abstract class GridWidget(WidgetInfo info, string? guid, Dictionary<strin
             tab.OnMouseUp += _ => SetConfigValue("Page", page);
             tabs.AppendChild(tab);
         }
-        Node.AppendChild(tabs);
-        if (pages.Length == 0) {
-            Node.AppendChild(new Node { NodeValue = "Name a category in Menu Options to show its slots.", Style = new() { Color = new("Window.Text"), Size = new(width,24) } });
-            return;
-        }
+        // No category node means no title height or inter-child gap.
+        if (pages.Length > 0) Node.AppendChild(tabs);
+        else tabs.Dispose();
         if (!IsMemberOfVerticalBar)
         {
             Node.AppendChild(new Node { NodeValue = "Set this auxiliary bar to Vertical", Style = new() { Color = new("Window.Text"), Size = new(width, 24) } });
@@ -157,6 +184,7 @@ public abstract class GridWidget(WidgetInfo info, string? guid, Dictionary<strin
         new IntegerWidgetConfigVariable("Rows", "Rows", "Slots down each page. Shrinking preserves hidden assignments.", 4, 1, 16) { Category = "Menu Options" },
         new IntegerWidgetConfigVariable("Scale", "Icon scale (%)", "Scales the icons and their clickable slots", 100, 50, 250) { Category = "Menu Options" },
         new IntegerWidgetConfigVariable("Gap", "Slot spacing", null, 8, 0, 20) { Category = "Menu Options" },
+        new IntegerWidgetConfigVariable("BackgroundOpacity", "Grid and backing opacity (%)", "0 = transparent, 100 = opaque. Icons stay unchanged. The backing is shared by the auxiliary bar; its lowest panel opacity applies.", 100, 0, 100) { Category = "Menu Options" },
         new BooleanWidgetConfigVariable("Empty", "Show empty slots", "Hidden empty slots retain their positions and can still be right-clicked.", true) { Category = "Menu Options" },
         new StringWidgetConfigVariable("Page0", "Category #1 name", "Leave blank to hide this category without deleting its slots.", "Page 1") { Category = "Menu Options" },
         new StringWidgetConfigVariable("Page1", "Category #2 name", "Leave blank to hide this category without deleting its slots.", "Page 2") { Category = "Menu Options" },
