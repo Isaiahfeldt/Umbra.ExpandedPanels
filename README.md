@@ -43,6 +43,14 @@ AGPL-3.0-or-later. Uses the public Umbra widget/provider interfaces; design info
 
 The grid now uses Umbra's original `_popup_button_grid.xml` resource. The right-click context menu and searchable icon picker are adapted from official Umbra source (AGPL-3.0-or-later), replacing the generic ImGui editor. Source attribution: Una-XIV/Umbra commit 4f7abbd045e7769ec01ef6456dba0d72dee3c2da; the adaptations live under ExpandedPanels/NativeUi. The context menu renderer runs independently of toolbar popups; the picker uses Umbra's WindowManager and original shortcut-picker resource.
 
-Menu Options groups category names, dimensions, scale, spacing and empty-slot visibility. Blank/whitespace category names hide that page without removing its contents. Hidden active pages fall back to the first named page. If all are blank, a message prompts you to name one. Existing widget data is retained, including spacing previously set to 4; use spacing 8 to match the official default.
+Menu Options groups category names, dimensions, scale, spacing and empty-slot visibility. Blank/whitespace category names hide that page without removing its contents. Hidden active pages fall back to the first named page. If all are blank, the current page remains visible as a grid without a category row (0.1.2 onward). Existing widget data is retained, including spacing previously set to 4; use spacing 8 to match the official default.
 
 Test in game: compare styling with the official panel; right-click and verify the themed menu and searchable icon picker; assign, copy/paste and clear slots; hide the active category, hide all categories, restore names and verify saved contents. Check scaling and reload persistence. Automatic closing after use is intentionally absent because these panels remain expanded.
+
+## 0.1.2 Grid-only mode and opacity
+
+Clear all four category names in Menu Options to remove the category bar and its occupied space completely. The current page stays visible; assignments on other pages remain saved and can be accessed by naming those categories again.
+
+**Grid and backing opacity (%)** controls slot backgrounds/borders and the auxiliary-bar backing, including its border and shadow. It does not dim icons, counts or labels; unavailable actions still use their normal dimming. Zero removes the backing while leaving slots clickable. When several expanded panels share one auxiliary bar, the lowest configured opacity controls their shared backing. Use separate auxiliary bars for independent backing opacity.
+
+In-game checks: clear all names and confirm the same grid remains without title space; restore names and verify pages/assignments. Test opacity at 100/50/0 with filled and empty slots, hover, item counts and unavailable actions. Test two panels sharing a bar, move/remove/disable a panel, and reload Umbra to verify backing restoration and persistence.
