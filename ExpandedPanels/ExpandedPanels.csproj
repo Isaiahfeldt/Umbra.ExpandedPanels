@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+    <PropertyGroup>
+<!--        <UmbraLibPath>Z:\FFXIV-plugins\una-xiv-plugins\Umbra\out\Release\</UmbraLibPath>-->
+        <UmbraLibPath Condition="'$(UmbraLibPath)' == ''">$([System.IO.Directory]::GetDirectories($(appdata)\XIVLauncher\installedPlugins\Umbra\)[0])\</UmbraLibPath>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <AssemblyName>Umbra.ExpandedPanels</AssemblyName>
+        <OutputPath>..\out\$(Configuration)\</OutputPath>
+        <Use_DalamudPackager>false</Use_DalamudPackager>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Authors>Isaiahfeldt</Authors>
+        <Company>Isaiahfeldt</Company>
+        <Version>0.1.0</Version>
+        <ProductName>Expanded Panels</ProductName>
+        <Description>Persistent scalable grids for Umbra auxiliary bars.</Description>
+        <Copyright>(C)2025</Copyright>
+        <PackageProjectUrl>https://github.com/Isaiahfeldt/Umbra.ExpandedPanels</PackageProjectUrl>
+        <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="Umbra">
+            <HintPath>$(UmbraLibPath)Umbra.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Umbra.Common">
+            <HintPath>$(UmbraLibPath)Umbra.Common.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Umbra.Game">
+            <HintPath>$(UmbraLibPath)Umbra.Game.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Una.Drawing">
+            <HintPath>$(UmbraLibPath)Una.Drawing.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+</Project>

@@ -1,0 +1,10 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Numerics;
+global using Dalamud.Bindings.ImGui;
+global using Dalamud.Plugin.Services;
+global using Umbra.Common;
+global using Umbra.Widgets;
+global using Umbra.Widgets.Library.ShortcutPanel.Providers;
+global using Una.Drawing;
