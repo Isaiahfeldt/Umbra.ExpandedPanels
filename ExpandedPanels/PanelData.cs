@@ -6,6 +6,8 @@ public sealed record Slot(string Type, uint Id);
 
 public sealed class PanelData
 {
+    public static int[] EnabledPages(IEnumerable<string> names) => names.Select((name,index) => (name,index))
+        .Where(pair => !string.IsNullOrWhiteSpace(pair.name)).Select(pair => pair.index).ToArray();
     public Dictionary<int, Dictionary<int, Slot>> Pages { get; set; } = new();
     public Slot? Get(int page, int slot) => Pages.GetValueOrDefault(page)?.GetValueOrDefault(slot);
     public void Set(int page, int slot, Slot? value)

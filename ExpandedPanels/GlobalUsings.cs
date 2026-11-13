@@ -8,3 +8,4 @@ global using Umbra.Common;
 global using Umbra.Widgets;
 global using Umbra.Widgets.Library.ShortcutPanel.Providers;
 global using Una.Drawing;
+global using Umbra.Windows.Components;

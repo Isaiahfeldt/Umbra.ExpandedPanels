@@ -13,4 +13,8 @@ Check(PanelData.ParseClipboard("SC:IM/0")==new Slot("IM",0));
 foreach(var invalid in new[]{"", "EM/42", "SC:EM/no", "SC:/42", "SC:EM/1/2"}) Check(PanelData.ParseClipboard(invalid)==null);
 try { PanelData.Parse("{bad}"); throw new Exception("Accepted corrupt data"); } catch(System.Text.Json.JsonException) {n++;}
 try { data.Set(4,0,new("EM",1)); throw new Exception("Accepted invalid page"); } catch(ArgumentOutOfRangeException) {n++;}
+Check(PanelData.EnabledPages(new[]{"One", "", "Three", " "}).SequenceEqual(new[]{0,2}));
+Check(PanelData.EnabledPages(new[]{"", " ", "", ""}).Length==0);
+Check(PanelData.EnabledPages(new[]{"One", "Two", "Three", "Four"}).Length==4);
+Check(PanelData.Parse(data.Serialize()).Get(1,42)==new Slot("EM",298));
 Console.WriteLine($"Passed {n} data and clipboard checks.");

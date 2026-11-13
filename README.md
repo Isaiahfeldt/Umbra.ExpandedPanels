@@ -38,3 +38,11 @@ dotnet run --project Checks
 Output: `out/Release/Umbra.ExpandedPanels.dll`. Package only the extension DLL/deps JSON and license; Umbra provides its own dependencies.
 
 AGPL-3.0-or-later. Uses the public Umbra widget/provider interfaces; design informed by the official Una-XIV Umbra grids. The original project is https://github.com/una-xiv/umbra.
+
+## 0.1.1 UI alignment
+
+The grid now uses Umbra's original `_popup_button_grid.xml` resource. The right-click context menu and searchable icon picker are adapted from official Umbra source (AGPL-3.0-or-later), replacing the generic ImGui editor. Source attribution: Una-XIV/Umbra commit 4f7abbd045e7769ec01ef6456dba0d72dee3c2da; the adaptations live under ExpandedPanels/NativeUi. The context menu renderer runs independently of toolbar popups; the picker uses Umbra's WindowManager and original shortcut-picker resource.
+
+Menu Options groups category names, dimensions, scale, spacing and empty-slot visibility. Blank/whitespace category names hide that page without removing its contents. Hidden active pages fall back to the first named page. If all are blank, a message prompts you to name one. Existing widget data is retained, including spacing previously set to 4; use spacing 8 to match the official default.
+
+Test in game: compare styling with the official panel; right-click and verify the themed menu and searchable icon picker; assign, copy/paste and clear slots; hide the active category, hide all categories, restore names and verify saved contents. Check scaling and reload persistence. Automatic closing after use is intentionally absent because these panels remain expanded.
