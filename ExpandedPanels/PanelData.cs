@@ -6,6 +6,8 @@ public sealed record Slot(string Type, uint Id);
 
 public sealed class PanelData
 {
+    public static uint FadeAlpha(uint rgba, int percent) => (rgba & 0x00FFFFFFu)
+        | ((uint)Math.Round((rgba >> 24) * Math.Clamp(percent, 0, 100) / 100.0) << 24);
     public static int[] EnabledPages(IEnumerable<string> names) => names.Select((name,index) => (name,index))
         .Where(pair => !string.IsNullOrWhiteSpace(pair.name)).Select(pair => pair.index).ToArray();
     public Dictionary<int, Dictionary<int, Slot>> Pages { get; set; } = new();
