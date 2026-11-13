@@ -60,3 +60,9 @@ In-game checks: clear all names and confirm the same grid remains without title 
 Emotes without a chat command now use AgentEmote.ExecuteEmote with the exact stored ID, subject to the game's CanUseEmote check and player/loading checks. Normal chat-command emotes retain the official Umbra behavior. Sleep (88) and the commandless Dote-labelled entry (147) are available in the picker. Missing artwork uses a Sit icon as a display fallback only; ID 147 is not remapped. Existing assigned slots use this automatically.
 
 In-game validation required: compare both entries to the modified native hotbar actions; verify invocation, Sleep's icon, the fallback icon, normal emotes and emote chat output. If the native CanUseEmote check rejects a modified entry, the panel leaves it disabled; this build does not patch game data or force unlocks. Compilation and data checks do not validate native execution.
+
+## 0.1.4 Correct native Sit entry
+
+Native Sit is emote 96: the data row has no name, icon or text command, and uses sitting mode 2. It is now explicitly listed as **Sit (native)** with a Sit icon. Sleep remains 88. Emote 147 is a commandless Dote variant, so it is not remapped to Sit and its fallback artwork is now Dote.
+
+Replace the old Dote slot using the picker, or copy `SC:EM/96` and paste into the slot. Existing slots are never silently remapped. Verify 96 performs the desired sitting animation in-game; native execution still honors CanUseEmote.

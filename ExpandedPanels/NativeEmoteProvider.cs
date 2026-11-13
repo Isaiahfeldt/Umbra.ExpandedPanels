@@ -25,21 +25,23 @@ internal sealed class NativeEmoteProvider(AbstractShortcutProvider original) : A
             && !condition[ConditionFlag.BetweenAreas] && !condition[ConditionFlag.BetweenAreas51]
             && !condition[ConditionFlag.WatchingCutscene] && !condition[ConditionFlag.WatchingCutscene78];
     }
+    private static string DisplayName(Emote row) => row.RowId == 96
+        ? "Sit (native)" : row.Name.ExtractText();
     private static uint Icon(Emote row)
     {
         if (row.Icon != 0) return row.Icon;
         // A visual fallback only. The selected emote ID is never remapped.
-        return 246256; // Sit icon for hidden entries lacking artwork.
+        return row.RowId == 147 ? 246309u : 246256u; // Dote keeps its own visual identity.
     }
     public override IList<Shortcut> GetShortcuts(string? searchFilter)
     {
         var result = original.GetShortcuts(searchFilter);
         // These already exist on the user's native hotbar; expose their exact IDs for assignment.
-        foreach (uint id in new uint[] { 88, 147 })
+        foreach (uint id in new uint[] { 88, 96 })
         {
             var row = Row(id);
             if (row == null || result.Any(s => s.Id == id)) continue;
-            var name = row.Value.Name.ExtractText();
+            var name = DisplayName(row.Value);
             if (!string.IsNullOrWhiteSpace(searchFilter) && !name.Contains(searchFilter, StringComparison.OrdinalIgnoreCase)) continue;
             result.Add(new Shortcut { Id = id, Name = name, IconId = Icon(row.Value), Description = $"Native emote #{id} (no chat command)" });
         }
@@ -56,7 +58,7 @@ internal sealed class NativeEmoteProvider(AbstractShortcutProvider original) : A
         var row = Row(id);
         if (row == null || !Commandless(row.Value)) return original.GetShortcut(id, widgetInstanceId);
         var agent = Ready() ? AgentEmote.Instance() : null;
-        return new Shortcut { Id = id, Name = row.Value.Name.ExtractText(), IconId = Icon(row.Value),
+        return new Shortcut { Id = id, Name = DisplayName(row.Value), IconId = Icon(row.Value),
             IsDisabled = agent == null || !agent->CanUseEmote((ushort)id) };
     }
     public override unsafe void OnInvokeShortcut(byte categoryId, int slotId, uint id, string widgetInstanceId)
