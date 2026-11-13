@@ -13,7 +13,7 @@ public abstract class GridWidget(WidgetInfo info, string? guid, Dictionary<strin
 {
     public bool EmotesOnly => emotesOnly;
     public override WidgetPopup? Popup => null;
-    public override Node Node { get; } = new() { Style = new() { Flow = Flow.Vertical, Gap = 4, Padding = new(4) } };
+    public override Node Node { get; } = new Umbra.UdtNode("umbra.widgets._popup_button_grid.xml");
     private PanelData data = new();
     private bool dirty = true;
     private string lastData = "";
@@ -54,6 +54,8 @@ public abstract class GridWidget(WidgetInfo info, string? guid, Dictionary<strin
             lastData = saved;
             dirty = true;
         }
+        var enabledPages = PanelData.EnabledPages(Enumerable.Range(0,4).Select(p => GetConfigValue<string>($"Page{p}")));
+        if (enabledPages.Length > 0 && !enabledPages.Contains(Page)) SetConfigValue("Page", enabledPages[0]);
         if (dirty) { Rebuild(); dirty = false; }
         if (Environment.TickCount64 < nextRefresh) return;
         nextRefresh = Environment.TickCount64 + 250;
@@ -66,6 +68,8 @@ public abstract class GridWidget(WidgetInfo info, string? guid, Dictionary<strin
             cell.Icon.Style.IconId = shortcut?.IconId ?? 0;
             cell.SubIcon.Style.IconId = shortcut?.SubIconId ?? 0;
             cell.Count.NodeValue = shortcut?.Count?.ToString() ?? "";
+            cell.Button.ToggleTag("empty-hidden", entry == null && !GetConfigValue<bool>("Empty"));
+            cell.Button.ToggleTag("empty-visible", entry == null && GetConfigValue<bool>("Empty"));
             cell.Button.Style.Opacity = shortcut?.IsDisabled == true ? 0.45f : entry == null && !GetConfigValue<bool>("Empty") ? 0.1f : 1;
             cell.Button.Tooltip = error ?? (shortcut?.Name ?? (entry == null ? "Right-click to assign a shortcut" : "Shortcut unavailable. Right-click to edit."));
         }
@@ -75,52 +79,59 @@ public abstract class GridWidget(WidgetInfo info, string? guid, Dictionary<strin
     {
         foreach (var child in Node.ChildNodes.ToArray()) child.Dispose();
         Node.ChildNodes.Clear(); slots.Clear();
-        int size = 48 * GetConfigValue<int>("Scale") / 100;
+        int size = 46 * GetConfigValue<int>("Scale") / 100;
         int gap = GetConfigValue<int>("Gap");
         int cols = GetConfigValue<int>("Columns"), rows = GetConfigValue<int>("Rows");
         Node.Style.Gap = gap;
         int width = cols * size + (cols - 1) * gap;
-        Node.Style.Size = new(width + 8, 0);
-        var tabs = new Node { Style = new() { Flow = Flow.Horizontal, Gap = 2 } };
-        for (int p = 0; p < 4; p++)
+        Node.Style.Size = new(width + 16, 0);
+        var tabs = new Node { Id = "CategoryBar", Style = new() { Flow = Flow.Horizontal, Gap = 2 } };
+        var pages = PanelData.EnabledPages(Enumerable.Range(0,4).Select(p => GetConfigValue<string>($"Page{p}")));
+        foreach (int p in pages)
         {
             int page = p;
-            var tab = new Node { NodeValue = GetConfigValue<string>($"Page{p}"), Tooltip = $"Switch to page {p+1}",
-                Style = new() { Size = new(Math.Max(20, (width - 6) / 4), Math.Max(22, size / 2)),
-                    FontSize = Math.Clamp(size / 3, 10, 26), Color = new("Window.Text"),
-                    BackgroundColor = new(p == Page ? "Input.BackgroundHover" : "Input.Background") } };
+            var tab = new Node { ClassList = ["button"], TagsList = p == Page ? ["selected"] : [], NodeValue = GetConfigValue<string>($"Page{p}"), Tooltip = $"Switch to page {p+1}",
+                Style = new() { Size = new(Math.Max(20, (width - 2 * (pages.Length - 1)) / Math.Max(1,pages.Length)), Math.Max(22, size / 2)),
+                    FontSize = Math.Clamp(13 * GetConfigValue<int>("Scale") / 100, 10, 26) } };
             tab.OnMouseUp += _ => SetConfigValue("Page", page);
             tabs.AppendChild(tab);
         }
         Node.AppendChild(tabs);
+        if (pages.Length == 0) {
+            Node.AppendChild(new Node { NodeValue = "Name a category in Menu Options to show its slots.", Style = new() { Color = new("Window.Text"), Size = new(width,24) } });
+            return;
+        }
         if (!IsMemberOfVerticalBar)
         {
             Node.AppendChild(new Node { NodeValue = "Set this auxiliary bar to Vertical", Style = new() { Color = new("Window.Text"), Size = new(width, 24) } });
             return;
         }
+        var container = new Node { ClassList = ["slot-container"], Style = new() { Flow = Flow.Vertical, Gap = gap } };
+        Node.AppendChild(container);
         for (int r = 0; r < rows; r++)
         {
-            var row = new Node { Style = new() { Flow = Flow.Horizontal, Gap = gap } };
+            var row = new Node { ClassList = ["slot-row"], Style = new() { Flow = Flow.Horizontal, Gap = gap } };
             for (int c = 0; c < cols; c++)
             {
                 int index = r * cols + c;
-                var button = new Node { Style = new() { Size = new(size, size), BackgroundColor = new("Input.Background"), BorderRadius = 4 } };
-                var icon = new Node { Style = new() { Size = new(size-4, size-4), Anchor = Anchor.MiddleCenter } };
-                var sub = new Node { Style = new() { Size = new(size/2, size/2), Anchor = Anchor.TopRight } };
-                var count = new Node { Style = new() { Anchor = Anchor.BottomRight, FontSize = Math.Max(10,size/4), Color = new("Window.Text"), OutlineColor = new("Window.TextOutline"), OutlineSize = 1 } };
+                var button = new Node { ClassList = ["slot-button"], Style = new() { Size = new(size, size) } };
+                var icon = new Node { ClassList = ["icon"], Style = new() { Size = new(size-4, size-4), Anchor = Anchor.MiddleCenter } };
+                var sub = new Node { ClassList = ["sub-icon"], Style = new() { Size = new(size/2, size/2), Anchor = Anchor.TopRight } };
+                var count = new Node { ClassList = ["count"], Style = new() { Anchor = Anchor.BottomRight, FontSize = Math.Max(10,size/4), Color = new("Window.Text"), OutlineColor = new("Window.TextOutline"), OutlineSize = 1 } };
                 button.AppendChild(icon); button.AppendChild(sub); button.AppendChild(count);
                 button.OnMouseUp += _ => Invoke(index);
                 button.OnRightClick += _ => Framework.Service<SlotEditor>().Open(this, Page, index);
                 row.AppendChild(button); slots.Add((button,icon,count,sub,index));
             }
-            Node.AppendChild(row);
+            container.AppendChild(row);
         }
         if (emotesOnly)
         {
             var game = Framework.Service<IGameConfig>();
-            var footer = new Node { NodeValue = game.UiConfig.GetBool("EmoteTextType") ? "Emote chat output: ON" : "Emote chat output: OFF",
-                Tooltip = "Click to toggle the game's emote chat output", Style = new() { Size = new(width, 24), Color = new("Window.Text") } };
-            footer.OnMouseUp += _ => { game.UiConfig.Set("EmoteTextType", !game.UiConfig.GetBool("EmoteTextType")); dirty = true; };
+            var footer = new Node { Id = "Footer" };
+            var chat = new CheckboxNode("WriteToChat", game.UiConfig.GetBool("EmoteTextType"), I18N.Translate("Widget.EmoteList.Option.WriteToChat"));
+            chat.OnValueChanged += value => game.UiConfig.Set("EmoteTextType", value);
+            footer.AppendChild(chat);
             Node.AppendChild(footer);
         }
         nextRefresh = 0;
@@ -142,15 +153,15 @@ public abstract class GridWidget(WidgetInfo info, string? guid, Dictionary<strin
 
     protected override IEnumerable<IWidgetConfigVariable> GetConfigVariables() => new IWidgetConfigVariable[] {
         new StringWidgetConfigVariable("Title", "Panel name", null, emotesOnly ? "Expanded Emotes" : "Expanded Shortcuts"),
-        new IntegerWidgetConfigVariable("Columns", "Columns", "Slots across each page", 8, 1, 16),
-        new IntegerWidgetConfigVariable("Rows", "Rows", "Slots down each page. Shrinking preserves hidden assignments.", 4, 1, 16),
-        new IntegerWidgetConfigVariable("Scale", "Icon scale (%)", "Scales the icons and their clickable slots", 100, 50, 250),
-        new IntegerWidgetConfigVariable("Gap", "Slot spacing", null, 4, 0, 20),
-        new BooleanWidgetConfigVariable("Empty", "Show empty slots", "Hidden empty slots retain their positions and can still be right-clicked.", true),
-        new StringWidgetConfigVariable("Page0", "Page 1 name", null, "Page 1"),
-        new StringWidgetConfigVariable("Page1", "Page 2 name", null, "Page 2"),
-        new StringWidgetConfigVariable("Page2", "Page 3 name", null, "Page 3"),
-        new StringWidgetConfigVariable("Page3", "Page 4 name", null, "Page 4"),
+        new IntegerWidgetConfigVariable("Columns", "Columns", "Slots across each page", 8, 1, 16) { Category = "Menu Options" },
+        new IntegerWidgetConfigVariable("Rows", "Rows", "Slots down each page. Shrinking preserves hidden assignments.", 4, 1, 16) { Category = "Menu Options" },
+        new IntegerWidgetConfigVariable("Scale", "Icon scale (%)", "Scales the icons and their clickable slots", 100, 50, 250) { Category = "Menu Options" },
+        new IntegerWidgetConfigVariable("Gap", "Slot spacing", null, 8, 0, 20) { Category = "Menu Options" },
+        new BooleanWidgetConfigVariable("Empty", "Show empty slots", "Hidden empty slots retain their positions and can still be right-clicked.", true) { Category = "Menu Options" },
+        new StringWidgetConfigVariable("Page0", "Category #1 name", "Leave blank to hide this category without deleting its slots.", "Page 1") { Category = "Menu Options" },
+        new StringWidgetConfigVariable("Page1", "Category #2 name", "Leave blank to hide this category without deleting its slots.", "Page 2") { Category = "Menu Options" },
+        new StringWidgetConfigVariable("Page2", "Category #3 name", "Leave blank to hide this category without deleting its slots.", "Page 3") { Category = "Menu Options" },
+        new StringWidgetConfigVariable("Page3", "Category #4 name", "Leave blank to hide this category without deleting its slots.", "Page 4") { Category = "Menu Options" },
         new IntegerWidgetConfigVariable("Page", "Active page", null, 0, 0, 3) { IsHidden = true },
         new StringWidgetConfigVariable("Data", "Slot data", null, "", 0) { IsHidden = true },
     };
