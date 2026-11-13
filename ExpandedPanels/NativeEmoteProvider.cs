@@ -25,10 +25,14 @@ internal sealed class NativeEmoteProvider(AbstractShortcutProvider original) : A
             && !condition[ConditionFlag.BetweenAreas] && !condition[ConditionFlag.BetweenAreas51]
             && !condition[ConditionFlag.WatchingCutscene] && !condition[ConditionFlag.WatchingCutscene78];
     }
-    private static string DisplayName(Emote row) => row.RowId == 96
-        ? "Sit (native)" : row.Name.ExtractText();
+    private static string DisplayName(Emote row) => row.RowId switch {
+        88 => "Sleep (Native)",
+        96 => "Sit (native)",
+        _ => row.Name.ExtractText(),
+    };
     private static uint Icon(Emote row)
     {
+        if (row.RowId is 88 or 96) return 246256;
         if (row.Icon != 0) return row.Icon;
         // A visual fallback only. The selected emote ID is never remapped.
         return row.RowId == 147 ? 246309u : 246256u; // Dote keeps its own visual identity.
@@ -49,7 +53,7 @@ internal sealed class NativeEmoteProvider(AbstractShortcutProvider original) : A
         for (int i = 0; i < result.Count; i++)
         {
             var item = result[i];
-            if (item.IconId == 0 && Row(item.Id) is { } row) { item.IconId = Icon(row); result[i] = item; }
+            if ((item.Id is 88 or 96 || item.IconId == 0) && Row(item.Id) is { } row) { item.Name = DisplayName(row); item.IconId = Icon(row); result[i] = item; }
         }
         return result;
     }

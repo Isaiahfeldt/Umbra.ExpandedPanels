@@ -66,3 +66,7 @@ In-game validation required: compare both entries to the modified native hotbar 
 Native Sit is emote 96: the data row has no name, icon or text command, and uses sitting mode 2. It is now explicitly listed as **Sit (native)** with a Sit icon. Sleep remains 88. Emote 147 is a commandless Dote variant, so it is not remapped to Sit and its fallback artwork is now Dote.
 
 Replace the old Dote slot using the picker, or copy `SC:EM/96` and paste into the slot. Existing slots are never silently remapped. Verify 96 performs the desired sitting animation in-game; native execution still honors CanUseEmote.
+
+## 0.1.5 Sleep appearance
+
+Emote 88 now displays as **Sleep (Native)** and uses the same Sit icon as native Sit 96, in both the picker and assigned slots. Its emote ID and native execution remain unchanged. Existing Sleep slots update automatically.
