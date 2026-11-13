@@ -54,3 +54,9 @@ Clear all four category names in Menu Options to remove the category bar and its
 **Grid and backing opacity (%)** controls slot backgrounds/borders and the auxiliary-bar backing, including its border and shadow. It does not dim icons, counts or labels; unavailable actions still use their normal dimming. Zero removes the backing while leaving slots clickable. When several expanded panels share one auxiliary bar, the lowest configured opacity controls their shared backing. Use separate auxiliary bars for independent backing opacity.
 
 In-game checks: clear all names and confirm the same grid remains without title space; restore names and verify pages/assignments. Test opacity at 100/50/0 with filled and empty slots, hover, item counts and unavailable actions. Test two panels sharing a bar, move/remove/disable a panel, and reload Umbra to verify backing restoration and persistence.
+
+## 0.1.3 Commandless emotes
+
+Emotes without a chat command now use AgentEmote.ExecuteEmote with the exact stored ID, subject to the game's CanUseEmote check and player/loading checks. Normal chat-command emotes retain the official Umbra behavior. Sleep (88) and the commandless Dote-labelled entry (147) are available in the picker. Missing artwork uses a Sit icon as a display fallback only; ID 147 is not remapped. Existing assigned slots use this automatically.
+
+In-game validation required: compare both entries to the modified native hotbar actions; verify invocation, Sleep's icon, the fallback icon, normal emotes and emote chat output. If the native CanUseEmote check rejects a modified entry, the panel leaves it disabled; this build does not patch game data or force unlocks. Compilation and data checks do not validate native execution.

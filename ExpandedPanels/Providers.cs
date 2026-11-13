@@ -10,7 +10,10 @@ public sealed class Providers
         foreach (var type in typeof(AbstractShortcutProvider).Assembly.GetTypes()
                      .Where(t => !t.IsAbstract && typeof(AbstractShortcutProvider).IsAssignableFrom(t)))
         {
-            try { All.Add(Framework.Service<AbstractShortcutProvider>(type)); }
+            try {
+                var provider = Framework.Service<AbstractShortcutProvider>(type);
+                All.Add(provider.ShortcutType == "EM" ? new NativeEmoteProvider(provider) : provider);
+            }
             catch (Exception ex) { Logger.Warning($"Expanded Panels: provider {type.Name} unavailable: {ex.Message}"); }
         }
         All.Sort((a,b) => a.ContextMenuEntryOrder.CompareTo(b.ContextMenuEntryOrder));
